@@ -7,11 +7,12 @@ MQTT_BROKER="172.17.17.1"
 HA_PREFIX="homeassistant/sensor"
 
 # Device & Sensor Naming Configuration
-# Entity IDs will be formatted as: sensor.{HOST}_{INTERFACE}_{metric}
+# Entity IDs will be formatted as: sensor.{host}_{interface}_{metric}
 # Example: sensor.fw1_wan_rx
-HOST="fw1"                    # Short hostname for entity IDs
-INTERFACE="wan"               # Network interface being monitored
-DEVICE_NAME="FW1"             # Friendly device name in Home Assistant
+# Note: HA automatically prepends device name to sensor names
+HOST="fw1"                    # Short hostname (lowercase)
+INTERFACE="wan"               # Network interface being monitored (lowercase)
+DEVICE_NAME="fw1"             # Device name in Home Assistant (lowercase)
 DEVICE_MODEL="Alpine Linux"   # Optional: Device model
 DEVICE_MANUFACTURER="Custom"  # Optional: Device manufacturer
 
@@ -22,7 +23,7 @@ SENSOR_PREFIX="${HOST}_${INTERFACE}"
 if [ ! -f /tmp/.mqtt-discovered ]; then
     # Daily totals (data)
     mosquitto_pub -h "$MQTT_BROKER" -t "$HA_PREFIX/${SENSOR_PREFIX}_rx/config" -r -m "{
-        \"name\":\"${DEVICE_NAME} ${INTERFACE^^} Download (Today)\",
+        \"name\":\"${INTERFACE} download today\",
         \"unique_id\":\"${SENSOR_PREFIX}_rx\",
         \"state_topic\":\"${HA_PREFIX}/${SENSOR_PREFIX}_rx/state\",
         \"unit_of_measurement\":\"GB\",
@@ -33,7 +34,7 @@ if [ ! -f /tmp/.mqtt-discovered ]; then
     }"
 
     mosquitto_pub -h "$MQTT_BROKER" -t "$HA_PREFIX/${SENSOR_PREFIX}_tx/config" -r -m "{
-        \"name\":\"${DEVICE_NAME} ${INTERFACE^^} Upload (Today)\",
+        \"name\":\"${INTERFACE} upload today\",
         \"unique_id\":\"${SENSOR_PREFIX}_tx\",
         \"state_topic\":\"${HA_PREFIX}/${SENSOR_PREFIX}_tx/state\",
         \"unit_of_measurement\":\"GB\",
@@ -45,7 +46,7 @@ if [ ! -f /tmp/.mqtt-discovered ]; then
 
     # Real-time bandwidth (data rate)
     mosquitto_pub -h "$MQTT_BROKER" -t "$HA_PREFIX/${SENSOR_PREFIX}_bandwidth_rx/config" -r -m "{
-        \"name\":\"${DEVICE_NAME} ${INTERFACE^^} RX Rate\",
+        \"name\":\"${INTERFACE} rx rate\",
         \"unique_id\":\"${SENSOR_PREFIX}_bandwidth_rx\",
         \"state_topic\":\"${HA_PREFIX}/${SENSOR_PREFIX}_bandwidth_rx/state\",
         \"unit_of_measurement\":\"Mbit/s\",
@@ -56,7 +57,7 @@ if [ ! -f /tmp/.mqtt-discovered ]; then
     }"
 
     mosquitto_pub -h "$MQTT_BROKER" -t "$HA_PREFIX/${SENSOR_PREFIX}_bandwidth_tx/config" -r -m "{
-        \"name\":\"${DEVICE_NAME} ${INTERFACE^^} TX Rate\",
+        \"name\":\"${INTERFACE} tx rate\",
         \"unique_id\":\"${SENSOR_PREFIX}_bandwidth_tx\",
         \"state_topic\":\"${HA_PREFIX}/${SENSOR_PREFIX}_bandwidth_tx/state\",
         \"unit_of_measurement\":\"Mbit/s\",
@@ -68,7 +69,7 @@ if [ ! -f /tmp/.mqtt-discovered ]; then
 
     # Packet rate (frequency)
     mosquitto_pub -h "$MQTT_BROKER" -t "$HA_PREFIX/${SENSOR_PREFIX}_rx_pps/config" -r -m "{
-        \"name\":\"${DEVICE_NAME} ${INTERFACE^^} RX Packets/s\",
+        \"name\":\"${INTERFACE} rx packets\",
         \"unique_id\":\"${SENSOR_PREFIX}_rx_pps\",
         \"state_topic\":\"${HA_PREFIX}/${SENSOR_PREFIX}_rx_pps/state\",
         \"unit_of_measurement\":\"pps\",
@@ -78,7 +79,7 @@ if [ ! -f /tmp/.mqtt-discovered ]; then
     }"
 
     mosquitto_pub -h "$MQTT_BROKER" -t "$HA_PREFIX/${SENSOR_PREFIX}_tx_pps/config" -r -m "{
-        \"name\":\"${DEVICE_NAME} ${INTERFACE^^} TX Packets/s\",
+        \"name\":\"${INTERFACE} tx packets\",
         \"unique_id\":\"${SENSOR_PREFIX}_tx_pps\",
         \"state_topic\":\"${HA_PREFIX}/${SENSOR_PREFIX}_tx_pps/state\",
         \"unit_of_measurement\":\"pps\",
@@ -89,7 +90,7 @@ if [ ! -f /tmp/.mqtt-discovered ]; then
 
     # Daily average bandwidth (data rate)
     mosquitto_pub -h "$MQTT_BROKER" -t "$HA_PREFIX/${SENSOR_PREFIX}_bandwidth_rx_avg/config" -r -m "{
-        \"name\":\"${DEVICE_NAME} ${INTERFACE^^} RX Avg (Today)\",
+        \"name\":\"${INTERFACE} rx avg today\",
         \"unique_id\":\"${SENSOR_PREFIX}_bandwidth_rx_avg\",
         \"state_topic\":\"${HA_PREFIX}/${SENSOR_PREFIX}_bandwidth_rx_avg/state\",
         \"unit_of_measurement\":\"Mbit/s\",
@@ -100,7 +101,7 @@ if [ ! -f /tmp/.mqtt-discovered ]; then
     }"
 
     mosquitto_pub -h "$MQTT_BROKER" -t "$HA_PREFIX/${SENSOR_PREFIX}_bandwidth_tx_avg/config" -r -m "{
-        \"name\":\"${DEVICE_NAME} ${INTERFACE^^} TX Avg (Today)\",
+        \"name\":\"${INTERFACE} tx avg today\",
         \"unique_id\":\"${SENSOR_PREFIX}_bandwidth_tx_avg\",
         \"state_topic\":\"${HA_PREFIX}/${SENSOR_PREFIX}_bandwidth_tx_avg/state\",
         \"unit_of_measurement\":\"Mbit/s\",

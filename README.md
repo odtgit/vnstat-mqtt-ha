@@ -20,22 +20,22 @@ This script monitors network traffic using vnstat and publishes the data to MQTT
 
 ## Monitored Sensors
 
-Sensor IDs follow the format: `{HOST}_{INTERFACE}_{metric}`
+Sensor IDs follow the format: `{host}_{interface}_{metric}` (all lowercase)
 
-Example with default configuration (HOST=fw1, INTERFACE=wan):
+Example with default configuration (host=fw1, interface=wan):
 
-| Sensor ID | Description | Unit | Type |
-|-----------|-------------|------|------|
-| `fw1_wan_rx` | Daily download total | GB | data_size |
-| `fw1_wan_tx` | Daily upload total | GB | data_size |
-| `fw1_wan_bandwidth_rx` | Current download rate | Mbit/s | data_rate |
-| `fw1_wan_bandwidth_tx` | Current upload rate | Mbit/s | data_rate |
-| `fw1_wan_rx_pps` | RX packet rate | pps | measurement |
-| `fw1_wan_tx_pps` | TX packet rate | pps | measurement |
-| `fw1_wan_bandwidth_rx_avg` | Daily average download | Mbit/s | data_rate |
-| `fw1_wan_bandwidth_tx_avg` | Daily average upload | Mbit/s | data_rate |
+| Entity ID | Friendly Name | Unit | Type |
+|-----------|---------------|------|------|
+| `sensor.fw1_wan_rx` | fw1 wan download today | GB | data_size |
+| `sensor.fw1_wan_tx` | fw1 wan upload today | GB | data_size |
+| `sensor.fw1_wan_bandwidth_rx` | fw1 wan rx rate | Mbit/s | data_rate |
+| `sensor.fw1_wan_bandwidth_tx` | fw1 wan tx rate | Mbit/s | data_rate |
+| `sensor.fw1_wan_rx_pps` | fw1 wan rx packets | pps | measurement |
+| `sensor.fw1_wan_tx_pps` | fw1 wan tx packets | pps | measurement |
+| `sensor.fw1_wan_bandwidth_rx_avg` | fw1 wan rx avg today | Mbit/s | data_rate |
+| `sensor.fw1_wan_bandwidth_tx_avg` | fw1 wan tx avg today | Mbit/s | data_rate |
 
-Entity IDs in Home Assistant will be: `sensor.{HOST}_{INTERFACE}_{metric}` (e.g., `sensor.fw1_wan_rx`)
+Note: Home Assistant automatically prepends the device name to sensor names in the UI.
 
 ## Dependencies
 
@@ -105,9 +105,9 @@ MQTT_BROKER="172.17.17.1"                # Your MQTT broker IP
 HA_PREFIX="homeassistant/sensor"         # MQTT discovery prefix
 
 # Device & Sensor Naming Configuration
-HOST="fw1"                               # Short hostname for entity IDs
-INTERFACE="wan"                          # Network interface (must match vnstat)
-DEVICE_NAME="FW1"                        # Friendly device name in Home Assistant
+HOST="fw1"                               # Short hostname (lowercase)
+INTERFACE="wan"                          # Network interface (lowercase, must match vnstat)
+DEVICE_NAME="fw1"                        # Device name in HA (lowercase)
 DEVICE_MODEL="Alpine Linux"              # Optional: Device model
 DEVICE_MANUFACTURER="Custom"             # Optional: Device manufacturer
 ```
@@ -115,12 +115,16 @@ DEVICE_MANUFACTURER="Custom"             # Optional: Device manufacturer
 **Naming Examples:**
 
 - With `HOST="router"` and `INTERFACE="eth0"`:
-  - Entity IDs: `sensor.router_eth0_rx`, `sensor.router_eth0_tx`, etc.
-  - Friendly names: "Router ETH0 Download (Today)", "Router ETH0 Upload (Today)", etc.
+  - Entity IDs: `sensor.router_eth0_rx`, `sensor.router_eth0_tx`
+  - Friendly names: "router eth0 download today", "router eth0 upload today"
+  - Device name: "router"
 
 - With `HOST="gateway"` and `INTERFACE="wan"`:
-  - Entity IDs: `sensor.gateway_wan_rx`, `sensor.gateway_wan_tx`, etc.
-  - Friendly names: "Gateway WAN Download (Today)", "Gateway WAN Upload (Today)", etc.
+  - Entity IDs: `sensor.gateway_wan_rx`, `sensor.gateway_wan_tx`
+  - Friendly names: "gateway wan download today", "gateway wan upload today"
+  - Device name: "gateway"
+
+Note: All naming is lowercase. Home Assistant automatically prepends the device name to sensor friendly names in the UI.
 
 ### 3. Install Script
 
