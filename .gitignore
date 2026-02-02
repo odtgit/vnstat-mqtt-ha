@@ -1,0 +1,18 @@
+# Backup/original files
+*.orig
+
+# Testing/temp files
+*.tmp
+*.log
+.mqtt-discovered
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
