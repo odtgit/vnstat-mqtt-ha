@@ -20,6 +20,10 @@ This script monitors network traffic using vnstat and publishes the data to MQTT
 
 ## Monitored Sensors
 
+Sensor IDs follow the format: `{HOST}_{INTERFACE}_{metric}`
+
+Example with default configuration (HOST=fw1, INTERFACE=wan):
+
 | Sensor ID | Description | Unit | Type |
 |-----------|-------------|------|------|
 | `fw1_wan_rx` | Daily download total | GB | data_size |
@@ -30,6 +34,8 @@ This script monitors network traffic using vnstat and publishes the data to MQTT
 | `fw1_wan_tx_pps` | TX packet rate | pps | measurement |
 | `fw1_wan_bandwidth_rx_avg` | Daily average download | Mbit/s | data_rate |
 | `fw1_wan_bandwidth_tx_avg` | Daily average upload | Mbit/s | data_rate |
+
+Entity IDs in Home Assistant will be: `sensor.{HOST}_{INTERFACE}_{metric}` (e.g., `sensor.fw1_wan_rx`)
 
 ## Dependencies
 
@@ -56,27 +62,65 @@ apt-get install vnstat jq mosquitto-clients bash
 
 ### 1. Configure vnstat
 
-Ensure vnstat is monitoring your network interface. Edit `/etc/vnstat.conf` if needed to specify the correct interface.
+Ensure vnstat is monitoring your network interface. Edit `/etc/vnstat.conf` to specify the interface:
 
 ```bash
-# Start and enable vnstat
-rc-service vnstatd start      # Alpine
-rc-update add vnstatd         # Alpine
-# or
-systemctl start vnstat        # systemd
-systemctl enable vnstat       # systemd
+# Example vnstat.conf
+Interface "wan"              # Your network interface name
+DatabaseDir "/var/lib/vnstat"
+MonthRotate 1
+UnitMode 0                   # 0 = IEC (KiB/MiB/GiB), 1 = old binary (KB/MB/GB)
+RateUnitMode 1              # 0 = IEC (Kibit/s), 1 = SI (kbit/s)
+RateUnit 1                  # 0 = bytes, 1 = bits
+DefaultDecimals 2
+```
+
+See `vnstat.conf` in this repository for a complete example.
+
+Start and enable vnstat:
+
+```bash
+# Alpine Linux
+rc-service vnstatd start
+rc-update add vnstatd
+
+# Debian/Ubuntu (systemd)
+systemctl start vnstat
+systemctl enable vnstat
+```
+
+Verify vnstat is collecting data:
+
+```bash
+vnstat
 ```
 
 ### 2. Edit Script Variables
 
-Edit `fw1-mqtt-pub.sh` and configure:
+Edit `fw1-mqtt-pub.sh` and configure the variables at the top:
 
 ```bash
-MQTT_BROKER="172.17.17.1"     # Your MQTT broker IP
-HA_PREFIX="homeassistant/sensor"  # MQTT discovery prefix
+# MQTT Configuration
+MQTT_BROKER="172.17.17.1"                # Your MQTT broker IP
+HA_PREFIX="homeassistant/sensor"         # MQTT discovery prefix
+
+# Device & Sensor Naming Configuration
+HOST="fw1"                               # Short hostname for entity IDs
+INTERFACE="wan"                          # Network interface (must match vnstat)
+DEVICE_NAME="FW1"                        # Friendly device name in Home Assistant
+DEVICE_MODEL="Alpine Linux"              # Optional: Device model
+DEVICE_MANUFACTURER="Custom"             # Optional: Device manufacturer
 ```
 
-Update sensor IDs and names in the discovery section if desired.
+**Naming Examples:**
+
+- With `HOST="router"` and `INTERFACE="eth0"`:
+  - Entity IDs: `sensor.router_eth0_rx`, `sensor.router_eth0_tx`, etc.
+  - Friendly names: "Router ETH0 Download (Today)", "Router ETH0 Upload (Today)", etc.
+
+- With `HOST="gateway"` and `INTERFACE="wan"`:
+  - Entity IDs: `sensor.gateway_wan_rx`, `sensor.gateway_wan_tx`, etc.
+  - Friendly names: "Gateway WAN Download (Today)", "Gateway WAN Upload (Today)", etc.
 
 ### 3. Install Script
 
@@ -105,7 +149,7 @@ Add line:
 ## Home Assistant Integration
 
 Sensors will automatically appear in Home Assistant under:
-- **Device**: FW1 Firewall
+- **Device**: Your configured `DEVICE_NAME` (e.g., "FW1")
 - **Integration**: MQTT
 
 No manual configuration needed in Home Assistant - the script handles auto-discovery.
@@ -114,7 +158,7 @@ No manual configuration needed in Home Assistant - the script handles auto-disco
 
 ```yaml
 type: entities
-title: FW1 Network Stats
+title: Network Stats
 entities:
   - entity: sensor.fw1_wan_rx
   - entity: sensor.fw1_wan_tx
@@ -129,8 +173,23 @@ type: history-graph
 title: WAN Bandwidth
 entities:
   - entity: sensor.fw1_wan_bandwidth_rx
+    name: Download
   - entity: sensor.fw1_wan_bandwidth_tx
+    name: Upload
 hours_to_show: 24
+refresh_interval: 0
+```
+
+### Example Statistics Card
+
+```yaml
+type: statistic
+entity: sensor.fw1_wan_bandwidth_rx
+period:
+  calendar:
+    period: day
+stat_type: mean
+name: Average Download Today
 ```
 
 ## How It Works
@@ -142,9 +201,10 @@ hours_to_show: 24
 
 ## Files
 
-- `fw1-mqtt-pub.sh` - Main script (improved version with unit separation)
+- `fw1-mqtt-pub.sh` - Main script with configurable naming and unit separation
 - `fw1-mqtt-pub.sh.orig` - Original script (for reference)
-- `vnstat.conf` - vnstat configuration from fw1
+- `vnstat.conf` - Example vnstat configuration
+- `README.md` - This file
 
 ## Troubleshooting
 
